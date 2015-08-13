@@ -520,6 +520,62 @@ function rgbaToHex(r, g, b, a) {
     return hex.join("");
 }
 
+// `hswlToRgb`
+// Converts HSWL to RGB. WL in this function is the WCAG 2.0 specification for
+//   relative luminance, used in tinycolor.getLuminance. 
+// *Assumes:* h is contained in [0, 360] (cyclically mapped) and s and wl are contained [0, 1]
+// *Returns:* { r, g, b } in the set [0, 255]
+function hswlToRgb(h, s, wl) {
+    h = (((h % -360) + 360) % 360) / 60.0;
+    s  = bound01(s, 1);
+    wl = bound01(wl, 1);
+
+    var max, min, alpha, x, y,
+        r = {k: 0.2126},
+        g = {k: 0.7152},
+        b = {k: 0.0722},
+        n = 1;
+
+    // reclassify rgb by max, min, and middle (alpha) values
+    // adjust hue to [-1, 1] range for final calculation
+    if      (0 <= h && h < 1) { max=r; min=b; alpha=g; n = -1; }
+    else if (1 <= h && h < 2) { max=g; min=b; alpha=r; h -= 2; }
+    else if (2 <= h && h < 3) { max=g; min=r; alpha=b; h -= 2; n = -1; }
+    else if (3 <= h && h < 4) { max=b; min=r; alpha=g; h -= 4; }
+    else if (4 <= h && h < 5) { max=b; min=g; alpha=r; h -= 4; n = -1; }
+    else if (5 <= h && h < 6) { max=r; min=g; alpha=b; h -= 6; }
+
+    // save some space
+    var kM = max.k, km = min.k, ka = alpha.k;
+    var p = Math.pow;
+
+    // solve for sRGB
+    x = p(wl / (kM*p(1+s, 2) + km*p(s-1, 2) + ka*p(s-1 + 2*n*h*s, 2)), 0.5);
+    max.val   = x * (1+s);
+    min.val   = x * (1-s);
+    alpha.val = x * (1-s - 2*n*h*s);
+
+    // when max + min > 1 the saturation formula changes, and
+    // all values must be recalculated
+    if (max.val + min.val > 1) {
+        x = 1 / (kM*p(s-1, 2) + km*p(s+1, 2) + ka*p(1+s + 2*n*h*s, 2));
+        y = p(
+            kM*(wl*p(s-1, 2) + p(2*s, 2)*(-km - ka*p(h+n, 2))) +
+            ka*(wl*p(1+s + 2*n*h*s, 2) - km*p(2*h*s, 2)) +
+            km*wl*p(1+s, 2), 0.5);
+
+        max.val   = x * (2*km*s*(s+1) + 2*ka*s*(h+n)*((n*(1+s))+2*h*s) + (1-s) * y);
+        min.val   = x * (2*kM*s*(s-1) + 2*ka*s*h*((n*(1+s))+2*h*s) + (1+s) * y);
+        alpha.val = x * n * (2*kM*(h+n)*s*(s-1) - 2*km*s*h*(1+s) + ((n*(1+s))+2*h*s) * y);
+    }
+
+    return {
+        r: mathRound(r.val * 255),
+        g: mathRound(g.val * 255),
+        b: mathRound(b.val * 255)
+    };
+}
+
 // `equals`
 // Can be called with any tinycolor input
 tinycolor.equals = function (color1, color2) {
