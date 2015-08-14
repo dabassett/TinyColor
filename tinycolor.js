@@ -576,6 +576,15 @@ function hswlToRgb(h, s, wl) {
     };
 }
 
+// `rgbToHswl`
+// Converts RBG to HSWL. Same as the HSL space with L replaced by WCAG 2 luminance
+function rgbToHswl(r, g, b) {
+    var c = tinycolor({r: r, g: g, b: b});
+    var hsl = c.toHsl();
+    var luminance = c.getLuminance();
+    return {h: hsl.h, s: hsl.s, l: luminance};
+}
+
 // `equals`
 // Can be called with any tinycolor input
 tinycolor.equals = function (color1, color2) {
