@@ -113,6 +113,10 @@ tinycolor.prototype = {
           "hsl("  + h + ", " + s + "%, " + l + "%)" :
           "hsla(" + h + ", " + s + "%, " + l + "%, "+ this._roundA + ")";
     },
+    toHswl: function() {
+        var hsl = this.toHsl();
+        return { h: hsl.h, s: hsl.s, wl: this.getLuminance(), a: this._a };
+    },
     toHex: function(allow3Char) {
         return rgbToHex(this._r, this._g, this._b, allow3Char);
     },
@@ -328,6 +332,13 @@ function inputToRGB(color) {
             ok = true;
             format = "hsl";
         }
+        else if (color.hasOwnProperty("h") && color.hasOwnProperty("s") && color.hasOwnProperty("wl")) {
+            color.s = convertToPercentage(color.s);
+            color.wl = convertToPercentage(color.wl);
+            rgb = hswlToRgb(color.h, color.s, color.wl);
+            ok = true;
+            format = "hswl";
+        }
 
         if (color.hasOwnProperty("a")) {
             a = color.a;
@@ -527,8 +538,8 @@ function rgbaToHex(r, g, b, a) {
 // *Returns:* { r, g, b } in the set [0, 255]
 function hswlToRgb(h, s, wl, passes) {
     h = (((h % -360) + 360) % 360) / 60.0;
-    s  = bound01(s, 1);
-    wl = bound01(wl, 1);
+    s  = bound01(s, 100);
+    wl = bound01(wl, 100);
     passes = passes || 2;
 
     var max, min, alpha, x, y,
@@ -591,7 +602,7 @@ function rgbToHswl(r, g, b) {
     var c = tinycolor({r: r, g: g, b: b});
     var hsl = c.toHsl();
     var luminance = c.getLuminance();
-    return {h: hsl.h, s: hsl.s, l: luminance};
+    return {h: hsl.h, s: hsl.s, wl: luminance};
 }
 
 // `equals`
@@ -879,9 +890,8 @@ tinycolor.mostReadable = function(baseColor, colorList, args) {
 tinycolor.getReadable = function(color, args) {
     args = args || {};
     color = tinycolor(color);
-    passes = args.passes || 2
 
-    var hsl = color.toHsl();
+    var hswl = color.toHswl();
     var blackContrast = tinycolor.readability(color, "black");
     var whiteContrast = tinycolor.readability(color, "white");
 
@@ -894,9 +904,9 @@ tinycolor.getReadable = function(color, args) {
     // calculate the required luminance to get the target contrast ratio
     // derived from http://www.w3.org/TR/2008/REC-WCAG20-20081211/#relativeluminancedef
     if (whiteContrast > blackContrast) {
-        targetLuminance = contrastRatio * (color.getLuminance() + 0.05) - 0.05;
+        targetLuminance = contrastRatio * (hswl.wl + 0.05) - 0.05;
     } else {
-        targetLuminance = ((color.getLuminance() + 0.05) / contrastRatio) - 0.05;
+        targetLuminance = ((hswl.wl + 0.05) / contrastRatio) - 0.05;
     }
 
     // fail or return a fallback color if the target luminance is out of bounds
@@ -906,7 +916,7 @@ tinycolor.getReadable = function(color, args) {
         return args.returnBestFit ? tinycolor("white") : false;
     }
 
-    return tinycolor(hswlToRgb(hsl.h, hsl.s, targetLuminance, passes));
+    return tinycolor({h: hswl.h, s: hswl.s, wl: targetLuminance});
 };
 
 // WCAG sizes and levels
@@ -1189,6 +1199,8 @@ var matchers = (function() {
         rgba: new RegExp("rgba" + PERMISSIVE_MATCH4),
         hsl: new RegExp("hsl" + PERMISSIVE_MATCH3),
         hsla: new RegExp("hsla" + PERMISSIVE_MATCH4),
+        hswl: new RegExp("hswl" + PERMISSIVE_MATCH3),
+        hswla: new RegExp("hswla" + PERMISSIVE_MATCH4),
         hsv: new RegExp("hsv" + PERMISSIVE_MATCH3),
         hsva: new RegExp("hsva" + PERMISSIVE_MATCH4),
         hex3: /^([0-9a-fA-F]{1})([0-9a-fA-F]{1})([0-9a-fA-F]{1})$/,
@@ -1228,6 +1240,12 @@ function stringInputToObject(color) {
     }
     if ((match = matchers.hsla.exec(color))) {
         return { h: match[1], s: match[2], l: match[3], a: match[4] };
+    }
+    if ((match = matchers.hswl.exec(color))) {
+        return { h: match[1], s: match[2], wl: match[3] };
+    }
+    if ((match = matchers.hswla.exec(color))) {
+        return { h: match[1], s: match[2], wl: match[3], a: match[4] };
     }
     if ((match = matchers.hsv.exec(color))) {
         return { h: match[1], s: match[2], v: match[3] };
