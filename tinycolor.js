@@ -117,6 +117,13 @@ tinycolor.prototype = {
         var hsl = this.toHsl();
         return { h: hsl.h, s: hsl.s, wl: this.getLuminance(), a: this._a };
     },
+    toHswlString: function() {
+        var hswl = this.toHswl();
+        var h = mathRound(hswl.h), s = mathRound(hswl.s * 100), wl = mathRound(hswl.wl * 100);
+        return (this._a == 1) ?
+          "hswl("  + h + ", " + s + "%, " + wl + "%)" :
+          "hswla(" + h + ", " + s + "%, " + wl + "%, "+ this._roundA + ")";
+    },
     toHex: function(allow3Char) {
         return rgbToHex(this._r, this._g, this._b, allow3Char);
     },
