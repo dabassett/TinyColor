@@ -885,7 +885,7 @@ tinycolor.mostReadable = function(baseColor, colorList, args) {
 //      "rgb(250, 243, 248)"
 //    tinycolor.getReadable("rgb(150 60 120)", {level: "AAA", size: "small"}); // contrast will be 7
 //      false
-//    tinycolor.getReadable("rgb(150 60 120)", {level: "AAA", size: "small", returnBestFit: true}).toRgbString();;
+//    tinycolor.getReadable("rgb(150 60 120)", {level: "AAA", size: "small", returnBestFit: true}).toRgbString();
 //      "rgb(255, 255, 255)"
 tinycolor.getReadable = function(color, args) {
     args = args || {};

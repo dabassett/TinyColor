@@ -25,7 +25,7 @@
 			].join("\n");
 
 			var hswl = tiny.toHswl(); 
-			var background = tinycolor({h: hswl.h, s: hswl.s, wl: hswl.wl * 0.1});
+			var background = tinycolor({h: hswl.h, s: hswl.s * 0.25, wl: hswl.wl * 0.25});
 			var font = tinycolor.getReadable(background, {level: "AAA", size: "small", returnBestFit: true});
 
 			$("#code-output").text(output).css({
