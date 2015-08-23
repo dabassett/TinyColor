@@ -603,15 +603,6 @@ function hswlToRgb(h, s, wl, passes) {
     };
 }
 
-// `rgbToHswl`
-// Converts RBG to HSWL. Same as the HSL space with L replaced by WCAG 2 luminance
-function rgbToHswl(r, g, b) {
-    var c = tinycolor({r: r, g: g, b: b});
-    var hsl = c.toHsl();
-    var luminance = c.getLuminance();
-    return {h: hsl.h, s: hsl.s, wl: luminance};
-}
-
 // `equals`
 // Can be called with any tinycolor input
 tinycolor.equals = function (color1, color2) {
@@ -897,6 +888,7 @@ tinycolor.mostReadable = function(baseColor, colorList, args) {
 tinycolor.getReadable = function(color, args) {
     args = args || {};
     color = tinycolor(color);
+    var targetLuminance;
 
     var hswl = color.toHswl();
     var blackContrast = tinycolor.readability(color, "black");
@@ -904,7 +896,7 @@ tinycolor.getReadable = function(color, args) {
 
     var contrastRatio = args.contrastRatio;
     if (isNaN(contrastRatio)) {
-        wcagParams = validateWCAG2Parms({level: args.level, size: args.size});
+        var wcagParams = validateWCAG2Parms({level: args.level, size: args.size});
         contrastRatio = wcagContrastLevels[wcagParams.level + wcagParams.size];
     }
 
