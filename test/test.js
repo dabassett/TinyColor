@@ -463,6 +463,34 @@ test("HSL String", function() {
     }
 });
 
+test("HSWL Object", function() {
+    for (var i = 0; i < conversions.length; i++) {
+      var c =  conversions[i];
+      var tiny =  tinycolor(c.hex);
+      var input = tiny.toRgb();
+      var output = tinycolor(tiny.toHswl()).toRgb();
+      var maxDiff = 2;
+
+      equal (Math.abs(input.r - output.r) <= maxDiff, true, "toHswl red value difference <= " + maxDiff);
+      equal (Math.abs(input.g - output.g) <= maxDiff, true, "toHswl green value difference <= " + maxDiff);
+      equal (Math.abs(input.b - output.b) <= maxDiff, true, "toHswl blue value difference <= " + maxDiff);
+    }
+});
+
+test("HSWL String", function() {
+    for (var i = 0; i < conversions.length; i++) {
+      var c =  conversions[i];
+      var tiny =  tinycolor(c.hex);
+      var input = tiny.toRgb();
+      var output = tinycolor(tiny.toHswlString()).toRgb();
+      var maxDiff = 10; // rounding introduces some extra error margin here
+
+      equal (Math.abs(input.r - output.r) <= maxDiff, true, "toHswlString red value difference <= " + maxDiff);
+      equal (Math.abs(input.g - output.g) <= maxDiff, true, "toHswlString green value difference <= " + maxDiff);
+      equal (Math.abs(input.b - output.b) <= maxDiff, true, "toHswlString blue value difference <= " + maxDiff);
+    }
+});
+
 test("HSV String", function() {
     for (var i = 0; i < conversions.length; i++) {
       var c =  conversions[i];
@@ -648,7 +676,6 @@ test("getReadable", function() {
   equal (Math.abs(output.color.toHsl().h - tinycolor("#99ff55").toHsl().h) <= 1, true, "output color matches the hue from input color");
   equal (Math.abs(output.color.toHsl().s - tinycolor("#99ff55").toHsl().s) <= maxDiff, true, "output color matches the saturation from input color");
 });
-
 
 test("Filters", function () {
 
