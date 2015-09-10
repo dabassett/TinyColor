@@ -549,7 +549,7 @@ function hswlToRgb(h, s, wl, passes) {
     wl = bound01(wl, 100);
     passes = passes || 2;
 
-    var max, min, alpha, x, y,
+    var max, min, alpha,
         r = {k: 0.2126},
         g = {k: 0.7152},
         b = {k: 0.0722},
@@ -564,12 +564,18 @@ function hswlToRgb(h, s, wl, passes) {
     else if (4 <= h && h < 5) { max=b; min=g; alpha=r; h -= 4; n = -1; }
     else if (5 <= h && h < 6) { max=r; min=g; alpha=b; h -= 6; }
 
-    // save some space
-    var kM = max.k, km = min.k, ka = alpha.k;
-    var p = Math.pow;
-
     // solve for sRGB
-    function solveHswl() {
+    function solveHswl(max, min, alpha, hswl) {
+        var h = hswl.h,
+            s = hswl.s,
+            wl = hswl.wl,
+            kM = max.k,
+            km = min.k,
+            ka = alpha.k,
+            p = Math.pow;
+        var x;
+        var y;
+
         x = p(wl / (kM*p(1+s, 2) + km*p(s-1, 2) + ka*p(s-1 + 2*n*h*s, 2)), 0.5);
         max.val   = x * (1+s);
         min.val   = x * (1-s);
@@ -592,10 +598,10 @@ function hswlToRgb(h, s, wl, passes) {
 
     var target = wl;
     for (var i=0; i < passes; i++) {
-        solveHswl(max, min, alpha);
-        wl += target - tinycolor({r: r.val*255, g: g.val*255, b: b.val*255}).getLuminance(); 
+        solveHswl(max, min, alpha, {h: h, s: s, wl: wl});
+        wl += target - tinycolor({r: r.val*255, g: g.val*255, b: b.val*255}).getLuminance();
+        wl = clamp01(wl); // ensure rounding errors don't set a negative luminance
     }
-
     return {
         r: mathRound(r.val * 255),
         g: mathRound(g.val * 255),

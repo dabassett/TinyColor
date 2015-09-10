@@ -677,6 +677,22 @@ test("getReadable", function() {
   equal (Math.abs(output.color.toHsl().s - tinycolor("#99ff55").toHsl().s) <= maxDiff, true, "output color matches the saturation from input color");
 });
 
+// edge cases where getReadable is returning NaN
+test("getReadable edge cases", function() {
+  function getReadableEdgeCaseTest(color, contrast) {
+    var outColor;
+    outColor = tinycolor.getReadable(color, {contrastRatio: contrast}).toRgb();
+    equal ((outColor.r >= 0 && outColor.r <= 255), true, "getReadable(" + color + ", {contrastRatio: " + contrast + "}) red channel is valid");
+    equal ((outColor.g >= 0 && outColor.g <= 255), true, "getReadable(" + color + ", {contrastRatio: " + contrast + "}) green channel is valid");
+    equal ((outColor.b >= 0 && outColor.b <= 255), true, "getReadable(" + color + ", {contrastRatio: " + contrast + "}) blue channel is valid");
+    return;
+  }
+  getReadableEdgeCaseTest("#986789", 4.5);
+  getReadableEdgeCaseTest("#b384d2", 7);
+  getReadableEdgeCaseTest("#20a4c0", 7);
+  getReadableEdgeCaseTest("#bb4e8f", 4.5);
+});
+
 test("Filters", function () {
 
   equal (tinycolor("red").toFilter(), "progid:DXImageTransform.Microsoft.gradient(startColorstr=#ffff0000,endColorstr=#ffff0000)");
